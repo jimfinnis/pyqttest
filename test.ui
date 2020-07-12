@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>600</height>
+    <width>745</width>
+    <height>631</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,8 +32,8 @@
      <rect>
       <x>10</x>
       <y>40</y>
-      <width>781</width>
-      <height>481</height>
+      <width>721</width>
+      <height>541</height>
      </rect>
     </property>
    </widget>
@@ -43,7 +43,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>745</width>
      <height>20</height>
     </rect>
    </property>
@@ -62,7 +62,7 @@
     <string>Quit</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+Q</string>
+    <string/>
    </property>
   </action>
   <action name="actionClose">

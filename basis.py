@@ -1,6 +1,6 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap,QImage
 
 import cv2 as cv
 
@@ -17,22 +17,29 @@ class Ui(QtWidgets.QMainWindow):
         if x is None:
             raise Exception('cannot find widget'+name)
         return x
-    
-    # capture button clicked
+        
+    # grab an image, return a pixmap which we can then load
+    # into a pixmapitem
     def capture(self):
-        print("BANG")
         rv,img = self.cam.read()
         if rv == 0:
             print("cannot read")
         else:
+            # cv is bgr, qt (and sensible things) are rgb
+            img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
             height, width, channel = img.shape
             bytesPerLine = 3 * width
             qimg = QImage(img.data, width, height, 
                 bytesPerLine, QImage.Format_RGB888)
-            self.pix.convertFromImage(img)
+            return QPixmap.fromImage(qimg)
+    
+    # capture button clicked
+    def captureButtonAction(self):
+        self.pixmapitem.setPixmap(self.capture())
+        print("BANG")
         
     # confirm a quit menu action
-    def confirmQuit(self):
+    def confirmQuitAction(self):
         reply = QMessageBox.question(self, 
             'Confirm',
             'Really quit?', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
@@ -46,20 +53,21 @@ class Ui(QtWidgets.QMainWindow):
         # now we get references to the widgets we want and connect
         # things up. Brackets here to make the line break work.
         (self.getUI(QtWidgets.QPushButton,'captureButton').
-            clicked.connect(self.capture))
+            clicked.connect(self.captureButtonAction))
         (self.getUI(QtWidgets.QAction,'actionQuit').
-            triggered.connect(self.confirmQuit))
+            triggered.connect(self.confirmQuitAction))
         
         # create a scene and set it into the view
         self.scene = QtWidgets.QGraphicsScene()
         self.getUI(QtWidgets.QGraphicsView,'graphicsView').setScene(self.scene)
-        # create a pixmap and add it to the scene.
-        self.pix = QPixmap()
-        self.scene.addPixmap(self.pix)
+        # create a pixmap item and add it to the scene.
+        self.pixmapitem = QtWidgets.QGraphicsPixmapItem()
+        self.scene.addItem(self.pixmapitem)
         
         # set up cv capture
         self.cam = cv.VideoCapture(0)
-
+        self.cam.set(cv.CAP_PROP_FRAME_WIDTH,640);
+        self.cam.set(cv.CAP_PROP_FRAME_HEIGHT,480);
         self.show() # Show the GUI
 
 # Create an instance of QtWidgets.QApplication
