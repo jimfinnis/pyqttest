@@ -1,0 +1,13 @@
+Test of opencv and pyqt generated from a .ui designer file
+
+1) Made the UI with a GraphicsView, a Quit menu and a Capture button.
+
+2) One way to do it; make the python with 
+    pyuic5 -x test.ui -o test.py
+   and base your code on that. Problem: you can't edit the UI again,
+   because running pyuic5 again will overwrite any changes you make.
+   
+   Another idea: load the UI into the python. There's code to do
+   this in basis.py, but basically you load the UI and then get
+   references to widgets in it.
+   
