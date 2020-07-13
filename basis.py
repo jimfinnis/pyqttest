@@ -8,7 +8,7 @@ import numpy as np
 import sys
 
 # make damn sure you do inherit from the root class of the UI
-# here.
+# here. This is the top level class in the .ui XML file.
 
 class Ui(QtWidgets.QMainWindow):
 

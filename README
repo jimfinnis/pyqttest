@@ -11,3 +11,6 @@ Test of opencv and pyqt generated from a .ui designer file
    this in basis.py, but basically you load the UI and then get
    references to widgets in it.
    
+The code here works the second way - it requires that the app
+bundles the .ui file, but that shouldn't be a problem. The .ui
+file itself can be edited (rather nicely) in QtDesigner.
