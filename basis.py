@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtGui import QPixmap,QImage
 
 import cv2 as cv
+import numpy as np
 
 import sys
 
@@ -23,10 +24,14 @@ class Ui(QtWidgets.QMainWindow):
     def capture(self):
         rv,img = self.cam.read()
         if rv == 0:
-            print("cannot read")
+            raise Exception('cannot read image')
         else:
             # cv is bgr, qt (and sensible things) are rgb
             img = cv.cvtColor(img, cv.COLOR_BGR2RGB)
+
+            # let's play with the image!
+            img = tweak(img)
+
             height, width, channel = img.shape
             bytesPerLine = 3 * width
             qimg = QImage(img.data, width, height, 
@@ -69,6 +74,16 @@ class Ui(QtWidgets.QMainWindow):
         self.cam.set(cv.CAP_PROP_FRAME_WIDTH,640);
         self.cam.set(cv.CAP_PROP_FRAME_HEIGHT,480);
         self.show() # Show the GUI
+        
+def tweak(img):
+    # example tweak. Split img into channels, each is a numpy array
+    # (as is the image, but the image is WxHx3).
+    r,g,b = cv.split(img)
+    # clip the red channel to a given range
+    r = r.clip(100,200)
+    # recombine channels
+    return cv.merge((r,g,b))
+
 
 # Create an instance of QtWidgets.QApplication
 app = QtWidgets.QApplication(sys.argv) 
