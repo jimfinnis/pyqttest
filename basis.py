@@ -32,10 +32,12 @@ class Ui(QtWidgets.QMainWindow):
             # let's play with the image!
             img = tweak(img)
 
+            # now convert to a QImage for display.
             height, width, channel = img.shape
             bytesPerLine = 3 * width
             qimg = QImage(img.data, width, height, 
                 bytesPerLine, QImage.Format_RGB888)
+            # and convert that to a QPixmap.
             return QPixmap.fromImage(qimg)
     
     # capture button clicked
