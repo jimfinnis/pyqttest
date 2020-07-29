@@ -1,0 +1,6 @@
+Things we know that we can use:
+there are multiple ellipses with the same (almost) major/minor axes and
+orientation, but very different centres.
+
+The centres and maj/minor axis lengths will have certain relationships which
+must hold.
