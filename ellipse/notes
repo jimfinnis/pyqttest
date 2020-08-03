@@ -3,4 +3,18 @@ there are multiple ellipses with the same (almost) major/minor axes and
 orientation, but very different centres.
 
 The centres and maj/minor axis lengths will have certain relationships which
-must hold.
+must hold. How can we do this?
+
+Find as many ellipses as you can (either with Hough or blob detection
+or similar). This should give you maj/min axes, orientations and centroids (how you 
+get some of these out of blobs I don't know).
+
+Of these many ellipses, we need to find a subset which are in a
+certain relationship. Some may not be present due to filtering (perhaps
+we can work out different subsets based on which filter is used?)
+
+The "obvious" method is to RANSACy - fit a 3D plane to groups of 3 centroids,
+discarding those which can't possibly be right - or for each pair
+of ellipses iterate over those which can possibly be in a valid plane.
+For each plane, try to find ellipses which will be in a "correct"
+relationship. This could be very slow?
