@@ -1,35 +1,49 @@
+import cv2 as cv
+import numpy as np
 
-from skimage import data, color, img_as_ubyte
 from skimage.feature import canny
 from skimage.transform import hough_ellipse
 from skimage.draw import ellipse_perimeter
 
-# Load picture, convert to grayscale and detect edges
-image_rgb = data.coffee()[0:220, 160:420]
-image_gray = color.rgb2gray(image_rgb)
-edges = canny(image_gray, sigma=2.0,
-              low_threshold=0.55, high_threshold=0.8)
 
-# Perform a Hough Transform
-# The accuracy corresponds to the bin size of a major axis.
-# The value is chosen in order to get a single high accumulator.
-# The threshold eliminates low accumulators
-result = hough_ellipse(edges, accuracy=20, threshold=250,
-                       min_size=100, max_size=120)
-result.sort(order='accumulator')
+def edgeDetect(img):
+    return canny(img,sigma=1,low_threshold=20,high_threshold=50)
+    
+def ellipseDetect(edges):
+    result = hough_ellipse(edges,accuracy=1,threshold=2,min_size=5,max_size=20)
+    result.sort(order='accumulator')
+    result = [x for x in result if x[4]>2 and x[3]>2] # must be non-degenerate
+    result = [x for x in result if abs(x[4]/x[3]-1.0)<0.2] # nearly circular
+    best = result[-100:]
+    
+    img = edges.astype(np.ubyte)*255
 
-# Estimated parameters for the ellipse
+    # merge together into a 3 channel grayscale
+    img = cv.merge([img,img,img])
+    # show results
+    for e in best:
+        ee = list(e)
+        yc, xc, a, b = [int(round(x)) for x in ee[1:5]]
+        orientation = ee[5]
 
-# filter out narrow ellipses
-best = list(result[-1])
-# get the fields
-yc, xc, a, b = [int(round(x)) for x in best[1:5]]
-orientation = best[5]
+        # draw ellipse
+        cy, cx = ellipse_perimeter(yc, xc, a, b, orientation)
+        cx = np.clip(cx,0,99)
+        cy = np.clip(cy,0,99)
+        img[cy, cx] = (255, 0, 0)
+    return img
 
-# Draw the ellipse on the original image
-cy, cx = ellipse_perimeter(yc, xc, a, b, orientation)
-image_rgb[cy, cx] = (0, 0, 255)
-# Draw the edge (white) and the resulting ellipse (red)
-edges = color.gray2rgb(img_as_ubyte(edges))
-edges[cy, cx] = (250, 0, 0)
+# each stage goes in here, they are all functions which take and return an image.
+# Images are numpy/cv, and are either (x,y) or (x,y,3) ubyte arrays --- 8 bit and
+# 24 bit colour respectively.
 
+stages= [ edgeDetect,ellipseDetect ]
+
+# run stage n: each stage takes and returns an image
+
+def stage(n,img):
+    if n<len(stages):
+        return stages[n](img)        
+    else:
+        return img
+    

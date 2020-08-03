@@ -1,0 +1,55 @@
+%countoff
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{newpxtext}
+\usepackage{newpxmath}
+\usepackage{setspace}
+\usepackage[top=3cm,bottom=3cm,inner=3.5cm,outer=2cm]{geometry}
+\usepackage[pdftex]{graphicx}
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage[most]{tcolorbox}
+
+\usepackage[backend=biber,style=apa,autocite=inline]{biblatex}
+\DeclareLanguageMapping{english}{english-apa}
+\addbibresource{bib.bib}
+
+\newenvironment{todoblock}[1]
+{\begin{center}%
+\begin{tcolorbox}[colback=red!5!white,colframe=red!75!black,title=To do: #1]}
+{\end{tcolorbox}\end{center}}
+
+\newenvironment{basicblock}
+{\begin{center}%
+\begin{tcolorbox}[colback=green!5!white,colframe=green!75!black]}
+{\end{tcolorbox}\end{center}}
+
+\newcommand{\todo}[1]{
+\begin{todoblock}{general}
+#1
+\end{todoblock}}
+
+\newenvironment{note}{\color{gray}}{}
+
+\newcommand{\complete}{\inlinetodo{COMPLETE THIS}}
+\newcommand{\citreq}{\inlinetodo{[citation required]}}
+
+\newtcbox{\inlinetodo}{colback=red!5!white,colframe=red!75!black,nobeforeafter,%
+boxsep=0pt,left=3pt,right=3pt,top=3pt,bottom=3pt,tcbox raise base}
+
+
+\title{PCT detection tests}
+\author{James Finnis (jcf12@aber.ac.uk)}
+\setlength{\parskip}{0.2em}
+
+\begin{document}
+\onehalfspacing
+\raggedbottom
+
+\maketitle
+
+\input{body.tex}
+
+\printbibliography
+
+\end{document}

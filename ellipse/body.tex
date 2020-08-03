@@ -1,0 +1,20 @@
+% Created by Jim Finnis
+% Date Mon Aug 3 11:19:48 2020
+
+
+\section{Initial work}
+First algorithm is this, which works on a small section of the image due to the
+slowness of the Hough transform:
+\begin{itemize}
+\item convert to grayscale (this is a bit weird, it's
+$0.299r+0.587g+0.144b$ to match human perception for want of anything else; ideally
+it would use something appropriate to the filter being used)
+\item Canny edge detect with fairly arbitrary thresholds, generating boolean array
+\item convert to [0,255] unsigned bytes
+\item perform Hough ellipse detection (takes a while)
+\item discard ellipses with very small major/minor axes (i.e. almost-lines)
+\item discard ellipses with a high eccentricity ($(a/b)-1 \ge 0.2$, where $a$ and $b$ are
+the axis lengths)
+\item get the best 100 results
+\end{itemize}
+
