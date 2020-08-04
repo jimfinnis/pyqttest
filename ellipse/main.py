@@ -6,7 +6,9 @@ import cv2 as cv
 import numpy as np
 import time,sys,math
 
+
 import ellipse
+import ellipse_blob
 
 # sizes of "slots" showing the various stages of processing in the view
 VIEWSLOTW = 300
@@ -89,10 +91,9 @@ class Ui(QtWidgets.QMainWindow):
         img = cv.cvtColor(img,cv.COLOR_BGR2RGB)
 
         # crop to ROI and resize to 100x100
-        img = cropSquare(img,340,430,100)
-        img = cv.resize(img,dsize=(100,100), interpolation=cv.INTER_CUBIC)
-        # convert to greyscale
-        self.img=greyscale(img)
+#        img = cropSquare(img,340,430,100)
+#        img = cv.resize(img,dsize=(100,100), interpolation=cv.INTER_CUBIC)
+        self.img=img
         self.canvas.display(0,self.img)
         self.stage=0
     
@@ -107,7 +108,9 @@ class Ui(QtWidgets.QMainWindow):
     def findEllipsesAction(self):
         print("Stage {0}, image {1} ".format(self.stage,self.img.shape))
         start = time.perf_counter()
-        self.img = ellipse.stage(self.stage,self.img)
+        # perform the next stage - the type of the image depends on the stage.
+        # At input it's a 24-bit image.
+        self.img = ellipse_blob.stage(self.stage,self.img)
         self.stage=self.stage+1
         self.canvas.display(self.stage,self.img)
         print("Time taken {0} ".format(time.perf_counter()-start))

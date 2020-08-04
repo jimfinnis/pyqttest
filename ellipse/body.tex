@@ -2,7 +2,7 @@
 % Date Mon Aug 3 11:19:48 2020
 
 
-\section{Initial work}
+\section{Hough transform algorithm}
 First algorithm is this, which works on a small section of the image due to the
 slowness of the Hough transform:
 \begin{itemize}
@@ -17,4 +17,32 @@ it would use something appropriate to the filter being used)
 the axis lengths)
 \item get the best 100 results
 \end{itemize}
+This sort of works, but breaks down when the edge detection produces a lot of small artifacts.
+It's also excruciatingly slow.
+
+\section{Blob detection algorithm}
+OpenCV has a blob detector with a fair few tunable parameters. This produces pretty good results,
+but may also produce a lot of false positives/negatives. Still, it's infinitely faster than the
+Hough algorithm. \textbf{Parameters have to be picked quite carefully.} There are two small refinements:
+\begin{itemize}
+\item I cull ellipses which are more than 10 standard deviations away in either $x$ or $y$ from
+the centroid of all ellipses.
+\item Not being sure of maxthresh, I iterate through all the thresholds and keep the largest number of
+matches, provided that number is $\le 8$ (count takes place after the cull above). This may not be ideal.
+\end{itemize}
+
+
+We now need to find the PCT within those ellipses. This is going to require fitting some kind of
+model of the PCT to the data. The data consists of approximate centres and radii. 
+Ideas:
+\begin{itemize}
+\item RANSAC? This is hard because the model is very unconstrained. Firstly, what \emph{is} the
+model? I would argue a centre, a two unit vectors (fwd and up) normal (thus defining a plane) and a scale.
+We can constrain some of these.
+\item There should be two radii represented in the data: small and large. At most 6 ellipses are small, at most
+2 are large. If there are significantly more or fewer different radii than that, perhaps we can tune the thresholds on the blob
+detector and re-run; similarly if there are many more or fewer ellipses of the two different radii.
+\end{itemize}
+
+
 
