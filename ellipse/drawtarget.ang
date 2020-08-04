@@ -1,0 +1,33 @@
+require "svg.ang" drop
+
+[
+ [12.5,11.0],
+ [33.5,11.0],
+ [54.5,11.0],
+ [12.5,32.0],
+ [33.5,32.0],
+ [54.5,32.0]
+ ] !SmallPatches
+
+[ [17,59],[50,59 ]] !LargePatches
+
+
+:draw
+    ?SmallPatches each {
+        i fst i snd 17.80 0.5* svg$circle
+        i fst i snd 20.0 0.5* svg$circle
+    }
+    ?LargePatches each {
+        i fst i snd 29.70 0.5* svg$circle
+        i fst i snd 32.0 0.5* svg$circle
+    }
+;
+
+(
+    [% `fill `none, `stroke `black, `width 0.2] svg$pushstyle
+    draw
+    svg$popstyle
+    100 100 svg$out
+    quit
+)@
+ 

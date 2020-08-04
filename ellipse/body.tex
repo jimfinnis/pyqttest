@@ -1,6 +1,19 @@
 % Created by Jim Finnis
 % Date Mon Aug 3 11:19:48 2020
 
+\section{PCT data}
+Document \verb+EXM-PC-DRW-ABU-0007_1.4_PCT_Drawing+ contains the following information,
+all dimensions in mm:
+
+\begin{itemize}
+\item Large patches diameter: 29.70 (glass) 32.0 (outer)
+\item Small patches diameter: 17.80 (glass) 20.0 (outer)
+\item X from RH edge of small patches: 12.5, 33.5, 54.5 (separation = 21)
+\item Y from T edge of small patches: 11, 32 (all mm)
+\item X from RH edge of large patches: 17, 50
+\item Y from T edge of large patches: 59
+\end{itemize}
+
 
 \section{Hough transform algorithm}
 First algorithm is this, which works on a small section of the image due to the
@@ -43,6 +56,6 @@ We can constrain some of these.
 2 are large. If there are significantly more or fewer different radii than that, perhaps we can tune the thresholds on the blob
 detector and re-run; similarly if there are many more or fewer ellipses of the two different radii.
 \end{itemize}
-
-
-
+The \verb+getPerspectiveTransform+ method in OpenCV takes two sets of 
+points: one is points the image, the other is points in the world. Both are 2D: the world points
+are all assumed to be at $z=0$. 
