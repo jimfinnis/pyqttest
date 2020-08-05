@@ -43,7 +43,8 @@ the centroid of all ellipses. \textbf{This could cause problems.} Consider
 the case of two clusters of ellipses, one correct on the PCT and the other
 elsewhere. Both clusters would be eliminated. Some form of clustering
 should probably be done instead, with the assumption that the result
-should have most points clearly clustered together and some outliers.
+should have most points clearly clustered together and some outliers. Of
+course, this essentially goes back to the initial problem!
 \item Not being sure of maxthresh, I iterate through all the thresholds and keep the largest number of
 matches, provided that number is $\le 8$ (count takes place after the cull above). This may not be ideal.
 \end{itemize}
