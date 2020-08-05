@@ -39,7 +39,11 @@ but may also produce a lot of false positives/negatives. Still, it's infinitely 
 Hough algorithm. \textbf{Parameters have to be picked quite carefully.} There are two small refinements:
 \begin{itemize}
 \item I cull ellipses which are more than 10 standard deviations away in either $x$ or $y$ from
-the centroid of all ellipses.
+the centroid of all ellipses. \textbf{This could cause problems.} Consider
+the case of two clusters of ellipses, one correct on the PCT and the other
+elsewhere. Both clusters would be eliminated. Some form of clustering
+should probably be done instead, with the assumption that the result
+should have most points clearly clustered together and some outliers.
 \item Not being sure of maxthresh, I iterate through all the thresholds and keep the largest number of
 matches, provided that number is $\le 8$ (count takes place after the cull above). This may not be ideal.
 \end{itemize}
