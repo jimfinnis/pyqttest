@@ -6,6 +6,14 @@ import cv2 as cv
 import numpy as np
 import time,sys,math
 
+# We work with multi-stage detection modules so we can see what's going
+# on. Each module has a single export: "stage". This performs a single
+# stage of the detection. It takes a tuple (image,data) and produces
+# a tuple (image,data) for the next stage to handle. After each stage,
+# the resulting image is displayed. The system doesn't care about the
+# data element, that's internal to the detector. The image should be 
+# 1 or 3 channels (i.e. greyscale or RGB), and can be either boolean or ubyte.
+# In the initial stage the data element is None (we've extracted no data yet).
 
 import ellipse
 import ellipse_blob
@@ -19,8 +27,7 @@ VIEWSLOTH = 300
 def greyscale(img):
     # convert to grayscale, favouring the green.
     # could do this with img = cv.cvtColor(img,cv.COLOR_RGB2GRAY)
-    img = 0.299*img[:,:,0]+0.587*img[:,:,1]+0.114*img[:,:,2]
-    return img.astype(np.ubyte)
+    return 0.299*img[:,:,0]+0.587*img[:,:,1]+0.114*img[:,:,2]
 
 def color(img):
     # convert greyscale to color; is naturally not the inverse of the above
@@ -91,11 +98,12 @@ class Ui(QtWidgets.QMainWindow):
         img = cv.cvtColor(img,cv.COLOR_BGR2RGB)
 
         # crop to ROI and resize to 100x100
-#        img = cropSquare(img,340,430,100)
-#        img = cv.resize(img,dsize=(100,100), interpolation=cv.INTER_CUBIC)
+        img = cropSquare(img,340,430,100)
+        img = cv.resize(img,dsize=(100,100), interpolation=cv.INTER_CUBIC)
         self.img=img
         self.canvas.display(0,self.img)
         self.stage=0
+        self.data=None
     
     # open file, get ROI and convert to grey
     def openFileAction(self):
@@ -109,8 +117,8 @@ class Ui(QtWidgets.QMainWindow):
         print("Stage {0}, image {1} ".format(self.stage,self.img.shape))
         start = time.perf_counter()
         # perform the next stage - the type of the image depends on the stage.
-        # At input it's a 24-bit image.
-        self.img = ellipse_blob.stage(self.stage,self.img)
+        # At input it's a 24-bit image.o
+        self.img,self.data = ellipse.stage(self.stage,(self.img,self.data))
         self.stage=self.stage+1
         self.canvas.display(self.stage,self.img)
         print("Time taken {0} ".format(time.perf_counter()-start))

@@ -2,7 +2,8 @@ import cv2 as cv
 import numpy as np
 import math
 
-def ellipseDetect(img):
+def ellipseDetect(input):
+    img,data = input
     params = cv.SimpleBlobDetector_Params()
       
     bestcount = 0
@@ -79,11 +80,12 @@ def ellipseDetect(img):
 
     keypoints=bestpoints        
     print(keypoints)
-    return cv.drawKeypoints(img, keypoints, 
+    img = cv.drawKeypoints(img, keypoints, 
             None, (255, 0, 0), 
             cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS )
+    return(img,keypoints)
 
-# each stage goes in here, they are all functions which take and return an image.
+# each stage goes in here, they are all functions which take and return an (image,data) tuple
 # Images are numpy/cv, and are either (x,y) or (x,y,3) ubyte arrays --- 8 bit and
 # 24 bit colour respectively.
 
@@ -91,9 +93,9 @@ stages= [ ellipseDetect ]
 
 # run stage n: each stage takes and returns an image
 
-def stage(n,img):
+def stage(n,input):
     if n<len(stages):
-        return stages[n](img)        
+        return stages[n](input)
     else:
         return img
     
