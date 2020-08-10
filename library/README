@@ -1,0 +1,6 @@
+A library of useful code.
+
+decorr.py: decorrelation stretch
+    (reference: https://github.com/lbrabec/decorrstretch)
+    
+contrast.py: contrast stretch, histogram equalisation

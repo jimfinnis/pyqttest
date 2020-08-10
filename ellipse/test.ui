@@ -27,7 +27,7 @@
      <string>Find Ellipses</string>
     </property>
     <property name="shortcut">
-     <string>Ctrl+E</string>
+     <string/>
     </property>
    </widget>
    <widget class="Canvas" name="view" native="true">
@@ -51,6 +51,16 @@
     </property>
     <property name="text">
      <string>Begin live</string>
+    </property>
+   </widget>
+   <widget class="QPlainTextEdit" name="status">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>660</y>
+      <width>971</width>
+      <height>81</height>
+     </rect>
     </property>
    </widget>
   </widget>

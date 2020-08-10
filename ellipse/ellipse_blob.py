@@ -2,6 +2,18 @@ import cv2 as cv
 import numpy as np
 import math
 
+from functools import reduce
+
+# histogram equalization
+def equalize(input):
+    img,data = input
+    r,g,b = cv.split(img)
+    r = cv.equalizeHist(r)
+    g = cv.equalizeHist(g)
+    b = cv.equalizeHist(b)
+    img = cv.merge((r,g,b))
+    return (img,None,False,"equalize")
+    
 def ellipseDetect(input):
     img,data = input
     params = cv.SimpleBlobDetector_Params()
@@ -11,8 +23,8 @@ def ellipseDetect(input):
     # use varying maximum threshold, keep the largest number
     # of blobs found (if it's less than 8)
     
-    for maxthresh in range(220,225,5):
-        params.thresholdStep = 10.0
+    for maxthresh in range(220,225,10):
+        params.thresholdStep = 1.0
         params.minThreshold = 10
         params.maxThreshold = maxthresh #220.0
  
@@ -60,9 +72,15 @@ def ellipseDetect(input):
             sdx = math.sqrt(scx/(k-1))
             sdy = math.sqrt(scy/(k-1))
             
-            # cull points which are more than 10 SDs away
-            sdx*=10
-            sdy*=10
+            # cull points which are more than N SDs away
+            sdx*=2
+            sdy*=2
+            
+            xp1 = int(mcx-sdx)
+            xp2 = int(mcx+sdx)
+            yp1 = int(mcy-sdy)
+            yp2 = int(mcy+sdy)
+            cv.rectangle(img,(xp1,yp1),(xp2,yp2),(255,0,0),thickness=4)
 
 #            keypoints = [p for p in keypoints if \
 #                abs(p.pt[0]-mcx)<sdx and abs(p.pt[0]-mcy)<sdy ]
@@ -86,17 +104,18 @@ def ellipseDetect(input):
     else:
         keypoints=list()
         print("No ellipses found")
-    return(img,keypoints,True)
+    return(img,keypoints,True,("blob ellipses","%d keypoints" % bestcount))
 
 # each stage goes in here, they are all functions which take an
-# (image,data) tuple and return an (image,data,boolean) tuple. 
+# (image,data) tuple and return an (image,data,boolean,text/tuple) tuple. 
 # Images are numpy/cv, and are either (x,y) or (x,y,3) ubyte arrays --- 8 bit and
 # 24 bit colour respectively.
 # The data field is used to pass non-image info between stages (and is
 # the output in the last stage), and the boolean field is true
-# for the last stage.
+# for the last stage. Text is displayed in the image. If it's a tuple,
+# the first element is output to the image, the second to the status
 
-stages= [ ellipseDetect ]
+stages= [ equalize, ellipseDetect ]
 
 # run stage n: each stage takes and returns an image
 
@@ -105,6 +124,6 @@ def stage(n,input):
         return stages[n](input)
     else:
         img,data = input
-        return (img,data,True)
+        return (img,data,True,'done')
     
 

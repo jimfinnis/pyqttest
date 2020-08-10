@@ -51,6 +51,7 @@ class Canvas(QtWidgets.QWidget):
         super(QtWidgets.QWidget,self).__init__(parent)
         # set up 10 empty "slots" (not the same as qt slots) to draw into
         self.displaySlots = [None for x in range(0,10)]
+        self.textSlots = [None for x in range(0,10)]
         
     # set an image into a slot - handles 8-bit and 24-bit; also boolean arrays (i.e.
     # edges)
@@ -61,6 +62,9 @@ class Canvas(QtWidgets.QWidget):
             img = color(img)
         self.displaySlots[slot]=img
         self.update()
+
+    def text(self,slot,s):
+        self.textSlots[slot]=s
 
     # show a 24-bit colour image in the pixmap, in a given slot -
     # done as part of update, data is set by displaySlot888
@@ -75,6 +79,10 @@ class Canvas(QtWidgets.QWidget):
             painter.drawImage(x,y,qimg)
         else:   
             painter.fillRect(x,y,VIEWSLOTW,VIEWSLOTH,Qt.blue)
+        s = self.textSlots[slot]
+        if s is not None:
+            painter.setPen(Qt.yellow)
+            painter.drawText(x+10,y+20,s)
 
     def paintEvent(self,event):
         p = QPainter(self)
@@ -101,9 +109,9 @@ class Ui(QtWidgets.QMainWindow):
         # cv is bgr, qt (and sensible things) are rgb
         img = cv.cvtColor(img,cv.COLOR_BGR2RGB)
 
-        # crop to ROI and resize to 100x100
+        # crop to ROI and resize
 #        img = cropSquare(img,340,430,100)
-#        img = cv.resize(img,dsize=(300,300), interpolation=cv.INTER_CUBIC)
+        img = cv.resize(img,dsize=(300,300), interpolation=cv.INTER_CUBIC)
         self.img=img
         self.canvas.display(0,self.img)
         self.stage=0
@@ -134,10 +142,16 @@ class Ui(QtWidgets.QMainWindow):
         start = time.perf_counter()
         # perform the next stage - the type of the image depends on the stage.
         # At input it's a 24-bit image.
-        self.img,self.data,self.done = ellipse_blob.stage(self.stage,(self.img,self.data))
+        self.img,self.data,self.done,text = ellipse_blob.stage(self.stage,(self.img,self.data))
         self.stage=self.stage+1
         self.canvas.display(self.stage,self.img)
         print("Time taken {0} ".format(time.perf_counter()-start))
+        if isinstance(text,tuple):
+            text,status = text
+            st = self.getUI(QtWidgets.QPlainTextEdit,'status')
+            st.appendPlainText(status)
+        self.canvas.text(self.stage,text)
+            
                 
     def findEllipsesAction(self):
         self.nextStage()
@@ -167,7 +181,7 @@ class Ui(QtWidgets.QMainWindow):
         if self.capturing:
             if self.done:
                 if self.cam is None:
-                    self.cam = cv.VideoCapture(0)
+                    self.cam = cv.VideoCapture(self.camNo)
                     self.cam.set(cv.CAP_PROP_FRAME_WIDTH,640)
                     self.cam.set(cv.CAP_PROP_FRAME_HEIGHT,480)
                     self.cam.set(cv.CAP_PROP_BUFFERSIZE,1)
@@ -213,6 +227,10 @@ class Ui(QtWidgets.QMainWindow):
         
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv) 
+    app = QtWidgets.QApplication(sys.argv)
+    camNo = 0
+    if len(sys.argv)>1:
+        camNo = int(sys.argv[1])
     window = Ui() # Create an instance of our class
+    window.camNo = camNo
     app.exec_() # Start the application
