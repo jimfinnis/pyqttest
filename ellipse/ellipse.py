@@ -10,7 +10,7 @@ def edgeDetect(input):
     img,_ = input
     # greyscale
     img = 0.299*img[:,:,0]+0.587*img[:,:,1]+0.114*img[:,:,2]
-    print(img.shape)
+    return canny(img,sigma=1,low_threshold=20,high_threshold=50)
     
     return (canny(img,sigma=1,low_threshold=20,high_threshold=50),None)
     
@@ -37,7 +37,7 @@ def ellipseDetect(input):
         cx = np.clip(cx,0,99)
         cy = np.clip(cy,0,99)
         img[cy, cx] = (255, 0, 0)
-    return (img,best)
+    return img
 
 # each stage goes in here, they are all functions which take and return an (image,data) tuple
 # Images are numpy/cv, and are either (x,y) or (x,y,3) ubyte arrays --- 8 bit and

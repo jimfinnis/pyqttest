@@ -11,7 +11,7 @@ def ellipseDetect(input):
     # use varying maximum threshold, keep the largest number
     # of blobs found (if it's less than 8)
     
-    for maxthresh in range(0,255,5):
+    for maxthresh in range(220,225,5):
         params.thresholdStep = 10.0
         params.minThreshold = 10
         params.maxThreshold = maxthresh #220.0
@@ -64,8 +64,8 @@ def ellipseDetect(input):
             sdx*=10
             sdy*=10
 
-            keypoints = [p for p in keypoints if \
-                abs(p.pt[0]-mcx)<sdx and abs(p.pt[0]-mcy)<sdy ]
+#            keypoints = [p for p in keypoints if \
+#                abs(p.pt[0]-mcx)<sdx and abs(p.pt[0]-mcy)<sdy ]
 
         
         count = len(keypoints)
@@ -74,20 +74,27 @@ def ellipseDetect(input):
         for p in keypoints:
             print(p.pt,p.size)
         if count<=8 and count>bestcount:
-            count=bestcount
+            bestcount=count
             bestpoints=keypoints
         
+    if bestcount>0:
+        keypoints=bestpoints        
+        print(keypoints)
+        img = cv.drawKeypoints(img, keypoints, 
+                None, (255, 0, 0), 
+                cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS )
+    else:
+        keypoints=list()
+        print("No ellipses found")
+    return(img,keypoints,True)
 
-    keypoints=bestpoints        
-    print(keypoints)
-    img = cv.drawKeypoints(img, keypoints, 
-            None, (255, 0, 0), 
-            cv.DrawMatchesFlags_DRAW_RICH_KEYPOINTS )
-    return(img,keypoints)
-
-# each stage goes in here, they are all functions which take and return an (image,data) tuple
+# each stage goes in here, they are all functions which take an
+# (image,data) tuple and return an (image,data,boolean) tuple. 
 # Images are numpy/cv, and are either (x,y) or (x,y,3) ubyte arrays --- 8 bit and
 # 24 bit colour respectively.
+# The data field is used to pass non-image info between stages (and is
+# the output in the last stage), and the boolean field is true
+# for the last stage.
 
 stages= [ ellipseDetect ]
 
@@ -97,6 +104,7 @@ def stage(n,input):
     if n<len(stages):
         return stages[n](input)
     else:
-        return img
+        img,data = input
+        return (img,data,True)
     
 

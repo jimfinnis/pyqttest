@@ -26,6 +26,9 @@
     <property name="text">
      <string>Find Ellipses</string>
     </property>
+    <property name="shortcut">
+     <string>Ctrl+E</string>
+    </property>
    </widget>
    <widget class="Canvas" name="view" native="true">
     <property name="geometry">
@@ -35,6 +38,19 @@
       <width>900</width>
       <height>600</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="liveCaptureButton">
+    <property name="geometry">
+     <rect>
+      <x>110</x>
+      <y>10</y>
+      <width>80</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Begin live</string>
     </property>
    </widget>
   </widget>
@@ -54,6 +70,7 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
     <addaction name="actionOpen"/>
+    <addaction name="actionLive"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
@@ -87,6 +104,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionLive">
+   <property name="text">
+    <string>&amp;Live</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
  </widget>

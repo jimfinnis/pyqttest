@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtWidgets import QMessageBox,QFileDialog
 from PyQt5.QtGui import QPixmap,QImage,QPainter
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt,QTimer
 import cv2 as cv
 import numpy as np
 import time,sys,math
@@ -27,7 +27,8 @@ VIEWSLOTH = 300
 def greyscale(img):
     # convert to grayscale, favouring the green.
     # could do this with img = cv.cvtColor(img,cv.COLOR_RGB2GRAY)
-    return 0.299*img[:,:,0]+0.587*img[:,:,1]+0.114*img[:,:,2]
+    img = 0.299*img[:,:,0]+0.587*img[:,:,1]+0.114*img[:,:,2]
+    return img.astype(np.ubyte)
 
 def color(img):
     # convert greyscale to color; is naturally not the inverse of the above
@@ -86,6 +87,30 @@ class Canvas(QtWidgets.QWidget):
         
 class Ui(QtWidgets.QMainWindow):
 
+    # this safely gets a widget reference
+    def getUI(self,type,name):
+        x = self.findChild(type,name)
+        if x is None:
+            raise Exception('cannot find widget '+name)
+        return x
+        
+
+    # set image for input to processing
+    # input: numpy w x h x 3 image, RGB 0-255
+    def setImage(self,img):
+        # cv is bgr, qt (and sensible things) are rgb
+        img = cv.cvtColor(img,cv.COLOR_BGR2RGB)
+
+        # crop to ROI and resize to 100x100
+#        img = cropSquare(img,340,430,100)
+#        img = cv.resize(img,dsize=(300,300), interpolation=cv.INTER_CUBIC)
+        self.img=img
+        self.canvas.display(0,self.img)
+        self.stage=0
+        self.data=None
+        self.done=False
+        
+        
     # input: filename
     # output: numpy w x h x 3 image, RGB 0-255
     
@@ -94,16 +119,7 @@ class Ui(QtWidgets.QMainWindow):
         print("Image read")
         if img is None:
             raise Exception('cannot read image')
-        # cv is bgr, qt (and sensible things) are rgb
-        img = cv.cvtColor(img,cv.COLOR_BGR2RGB)
-
-        # crop to ROI and resize to 100x100
-        img = cropSquare(img,340,430,100)
-        img = cv.resize(img,dsize=(100,100), interpolation=cv.INTER_CUBIC)
-        self.img=img
-        self.canvas.display(0,self.img)
-        self.stage=0
-        self.data=None
+        self.setImage(img)
     
     # open file, get ROI and convert to grey
     def openFileAction(self):
@@ -112,17 +128,30 @@ class Ui(QtWidgets.QMainWindow):
         if fname is None or fname == '':
             return
         self.loadFile(fname)
-        
-    def findEllipsesAction(self):
+
+    def nextStage(self):
         print("Stage {0}, image {1} ".format(self.stage,self.img.shape))
         start = time.perf_counter()
         # perform the next stage - the type of the image depends on the stage.
-        # At input it's a 24-bit image.o
-        self.img,self.data = ellipse.stage(self.stage,(self.img,self.data))
+        # At input it's a 24-bit image.
+        self.img,self.data,self.done = ellipse_blob.stage(self.stage,(self.img,self.data))
         self.stage=self.stage+1
         self.canvas.display(self.stage,self.img)
         print("Time taken {0} ".format(time.perf_counter()-start))
+                
+    def findEllipsesAction(self):
+        self.nextStage()
         
+    def liveCaptureAction(self):
+        self.capturing = not self.capturing
+        b = self.getUI(QtWidgets.QPushButton,'liveCaptureButton')
+        if self.capturing:
+            s = "End live"
+            b.setStyleSheet('QPushButton {background-color:#ff8080;}')
+        else:
+            s = "Begin live"
+            b.setStyleSheet('QPushButton {}')
+        b.setText(s)
         
     # confirm a quit menu action
     def confirmQuitAction(self):
@@ -134,13 +163,25 @@ class Ui(QtWidgets.QMainWindow):
         app.quit()
         
 
-    # this safely gets a widget reference
-    def getUI(self,type,name):
-        x = self.findChild(type,name)
-        if x is None:
-            raise Exception('cannot find widget '+name)
-        return x
-        
+    def tick(self):
+        if self.capturing:
+            if self.done:
+                if self.cam is None:
+                    self.cam = cv.VideoCapture(0)
+                    self.cam.set(cv.CAP_PROP_FRAME_WIDTH,640)
+                    self.cam.set(cv.CAP_PROP_FRAME_HEIGHT,480)
+                    self.cam.set(cv.CAP_PROP_BUFFERSIZE,1)
+                ret,img = self.cam.read()
+                if not ret:
+                    # no cam, should turn off button and capturing
+                    self.liveCaptureAction()
+                else:
+                    self.setImage(img)
+                    self.done = False
+            else:
+                self.nextStage()
+            
+
     def __init__(self,*args,**kwargs):
         super(Ui, self).__init__(*args,**kwargs) # Call the inherited classes __init__ method
         uic.loadUi('test.ui', self) # Load the .ui file
@@ -151,15 +192,25 @@ class Ui(QtWidgets.QMainWindow):
             triggered.connect(self.confirmQuitAction))
         (self.getUI(QtWidgets.QAction,'actionOpen').
             triggered.connect(self.openFileAction))
+        (self.getUI(QtWidgets.QAction,'actionLive').
+            triggered.connect(self.liveCaptureAction))
 
         (self.getUI(QtWidgets.QPushButton,'findEllipsesButton').
             clicked.connect(self.findEllipsesAction))
+        (self.getUI(QtWidgets.QPushButton,'liveCaptureButton').
+            clicked.connect(self.liveCaptureAction))
         
         self.canvas = self.getUI(QtWidgets.QWidget,'view')
         
+        self.capturing = False
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.tick)
+        self.timer.start(100)
+        self.cam = None
+
         self.show() # Show the GUI
         self.loadFile('thumbnail.png')
-        self.stage = 0
+        
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv) 

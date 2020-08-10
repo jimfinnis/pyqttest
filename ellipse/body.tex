@@ -45,6 +45,7 @@ elsewhere. Both clusters would be eliminated. Some form of clustering
 should probably be done instead, with the assumption that the result
 should have most points clearly clustered together and some outliers. Of
 course, this essentially goes back to the initial problem!
+Useful reference for clustering points: \url{https://github.com/opencv/opencv/blob/master/modules/calib3d/src/circlesgrid.cpp}
 \item Not being sure of maxthresh, I iterate through all the thresholds and keep the largest number of
 matches, provided that number is $\le 8$ (count takes place after the cull above). This may not be ideal.
 \end{itemize}
@@ -64,3 +65,4 @@ detector and re-run; similarly if there are many more or fewer ellipses of the t
 The \verb+getPerspectiveTransform+ method in OpenCV takes two sets of 
 points: one is points the image, the other is points in the world. Both are 2D: the world points
 are all assumed to be at $z=0$. 
+
