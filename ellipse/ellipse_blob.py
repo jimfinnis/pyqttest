@@ -3,6 +3,7 @@ import numpy as np
 import math
 
 from functools import reduce
+import cluster
 
 # histogram equalization
 def equalize(input):
@@ -17,20 +18,27 @@ def equalize(input):
 def ellipseDetect(input):
     img,data = input
     params = cv.SimpleBlobDetector_Params()
+
+    area = img.shape[0]*img.shape[1]
+    
+    minArea = area*0.000125
+    maxArea = area*0.002
+    print(area,minArea,maxArea)
       
     bestcount = 0
     
     # use varying maximum threshold, keep the largest number
     # of blobs found (if it's less than 8)
     
-    for maxthresh in range(220,225,10):
-        params.thresholdStep = 1.0
+    for maxthresh in range(20,225,10):
+        params.thresholdStep = 10.0
         params.minThreshold = 10
         params.maxThreshold = maxthresh #220.0
  
         params.filterByArea = True
-        params.minArea = 100
-        params.maxArea = 1000
+        params.minArea = minArea
+        params.maxArea = maxArea
+
         params.filterByColor = False
 
         params.filterByCircularity = True
@@ -46,54 +54,16 @@ def ellipseDetect(input):
         params.minDistBetweenBlobs= 10.0
 
         detector = cv.SimpleBlobDetector_create(params)
-        keypoints = detector.detect(img);
+        keypoints = detector.detect(img)
         
-        # cull keypoints far from the centroid
-        prevlen = len(keypoints)
-        if len(keypoints)>1:
-            # uses Welford's algorithm for mean and variance
-            k = 0 # count
-            mcx=0 # mean centroid x
-            mcy=0 # mean centroid y
-            scx=0 # sum centroid x variance
-            scy=0 # sum centroid y variance
+        keypoints = cluster.cluster(keypoints,5)
+        if keypoints is not None:
+            count = len(keypoints)
             for p in keypoints:
-                x = p.pt[0]
-                y = p.pt[1]
-                k+=1
-
-                m = mcx+(x-mcx)/k
-                scx += (x - mcx)*(x - m)
-                mcx = m
-                m = mcy+(y-mcy)/k
-                scy += (y - mcy)*(y - m)
-                mcy = m
-            # get standard deviations
-            sdx = math.sqrt(scx/(k-1))
-            sdy = math.sqrt(scy/(k-1))
-            
-            # cull points which are more than N SDs away
-            sdx*=2
-            sdy*=2
-            
-            xp1 = int(mcx-sdx)
-            xp2 = int(mcx+sdx)
-            yp1 = int(mcy-sdy)
-            yp2 = int(mcy+sdy)
-            cv.rectangle(img,(xp1,yp1),(xp2,yp2),(255,0,0),thickness=4)
-
-#            keypoints = [p for p in keypoints if \
-#                abs(p.pt[0]-mcx)<sdx and abs(p.pt[0]-mcy)<sdy ]
-
-        
-        count = len(keypoints)
-        print(maxthresh,count)
-        print("Culled {} points".format(prevlen-count))
-        for p in keypoints:
-            print(p.pt,p.size)
-        if count<=8 and count>bestcount:
-            bestcount=count
-            bestpoints=keypoints
+                print(p.pt,p.size)
+            if count<=8 and count>bestcount:
+                bestcount=count
+                bestpoints=keypoints
         
     if bestcount>0:
         keypoints=bestpoints        
@@ -115,7 +85,7 @@ def ellipseDetect(input):
 # for the last stage. Text is displayed in the image. If it's a tuple,
 # the first element is output to the image, the second to the status
 
-stages= [ equalize, ellipseDetect ]
+stages= [ ellipseDetect ]
 
 # run stage n: each stage takes and returns an image
 

@@ -111,7 +111,7 @@ class Ui(QtWidgets.QMainWindow):
 
         # crop to ROI and resize
 #        img = cropSquare(img,340,430,100)
-        img = cv.resize(img,dsize=(300,300), interpolation=cv.INTER_CUBIC)
+        img = cv.resize(img,dsize=(600,600), interpolation=cv.INTER_CUBIC)
         self.img=img
         self.canvas.display(0,self.img)
         self.stage=0
