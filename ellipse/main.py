@@ -106,7 +106,8 @@ class Ui(QtWidgets.QMainWindow):
         return x
         
     def clear(self):
-        self.canvas.clear()
+        if not self.capturing:
+            self.canvas.clear()
         self.stage=0
         self.data=None
         self.done=True # we've not done anything yet
