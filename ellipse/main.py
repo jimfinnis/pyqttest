@@ -1,7 +1,7 @@
 from PyQt5 import QtWidgets, uic
-from PyQt5.QtWidgets import QMessageBox,QFileDialog
+from PyQt5.QtWidgets import QMessageBox,QFileDialog,QTreeView,QFileSystemModel
 from PyQt5.QtGui import QPixmap,QImage,QPainter
-from PyQt5.QtCore import Qt,QTimer
+from PyQt5.QtCore import Qt,QTimer,QDir
 import cv2 as cv
 import numpy as np
 import time,sys,math
@@ -49,6 +49,9 @@ def cropSquare(img,x,y,size):
 class Canvas(QtWidgets.QWidget):
     def __init__(self,parent):
         super(QtWidgets.QWidget,self).__init__(parent)
+        self.clear()
+        
+    def clear(self):
         # set up 10 empty "slots" (not the same as qt slots) to draw into
         self.displaySlots = [None for x in range(0,10)]
         self.textSlots = [None for x in range(0,10)]
@@ -102,6 +105,13 @@ class Ui(QtWidgets.QMainWindow):
             raise Exception('cannot find widget '+name)
         return x
         
+    def clear(self):
+        self.canvas.clear()
+        self.stage=0
+        self.data=None
+        self.done=True # we've not done anything yet
+    
+        
 
     # set image for input to processing
     # input: numpy w x h x 3 image, RGB 0-255
@@ -113,9 +123,8 @@ class Ui(QtWidgets.QMainWindow):
 #        img = cropSquare(img,340,430,100)
         img = cv.resize(img,dsize=(600,600), interpolation=cv.INTER_CUBIC)
         self.img=img
+        self.clear()
         self.canvas.display(0,self.img)
-        self.stage=0
-        self.data=None
         self.done=False
         
         
@@ -138,6 +147,8 @@ class Ui(QtWidgets.QMainWindow):
         self.loadFile(fname)
 
     def nextStage(self):
+        if self.done:
+            return
         print("Stage {0}, image {1} ".format(self.stage,self.img.shape))
         start = time.perf_counter()
         # perform the next stage - the type of the image depends on the stage.
@@ -154,7 +165,11 @@ class Ui(QtWidgets.QMainWindow):
             
                 
     def findEllipsesAction(self):
-        self.nextStage()
+        while True:
+            print("Stage ",self.done,self.stage)
+            self.nextStage()
+            if self.done:
+                break
         
     def liveCaptureAction(self):
         self.capturing = not self.capturing
@@ -166,6 +181,12 @@ class Ui(QtWidgets.QMainWindow):
             s = "Begin live"
             b.setStyleSheet('QPushButton {}')
         b.setText(s)
+        
+    def fileClickedAction(self,idx):
+        if not self.dirModel.isDir(idx):
+            item = self.dirModel.filePath(idx)
+            self.loadFile(item)
+
         
     # confirm a quit menu action
     def confirmQuitAction(self):
@@ -214,16 +235,34 @@ class Ui(QtWidgets.QMainWindow):
         (self.getUI(QtWidgets.QPushButton,'liveCaptureButton').
             clicked.connect(self.liveCaptureAction))
         
-        self.canvas = self.getUI(QtWidgets.QWidget,'view')
-        
+        # set up the file tree
+        self.dirModel = QFileSystemModel()
+        self.dirModel.setRootPath(QDir.currentPath())
+        self.dirModel.setNameFilters(["*.jpg","*.png"])
+        tree = self.getUI(QtWidgets.QTreeView,'treeView')
+        tree.setModel(self.dirModel)
+        tree.setRootIndex(self.dirModel.index(QDir.currentPath()))
+        tree.setIndentation(10)
+        tree.setSortingEnabled(True)
+        tree.setColumnWidth(0, tree.width() / 1.5)
+        tree.setColumnHidden(1,True)
+        tree.setColumnHidden(2,True)
+        tree.doubleClicked.connect(self.fileClickedAction)
+        self.treeView=tree
+
+        # set up the live camera system (to null)
         self.capturing = False
+        self.cam = None
+        
+        # set up the drawing area and the timer which updates it
+        self.canvas = self.getUI(QtWidgets.QWidget,'view')
         self.timer = QTimer()
         self.timer.timeout.connect(self.tick)
         self.timer.start(100)
-        self.cam = None
 
+        self.clear() # set up internal state
         self.show() # Show the GUI
-        self.loadFile('thumbnail.png')
+#        self.loadFile('thumbnail.png')
         
 
 if __name__ == "__main__":

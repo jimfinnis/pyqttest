@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1051</width>
+    <width>1180</width>
     <height>783</height>
    </rect>
   </property>
@@ -35,7 +35,7 @@
      <rect>
       <x>29</x>
       <y>49</y>
-      <width>900</width>
+      <width>871</width>
       <height>600</height>
      </rect>
     </property>
@@ -58,8 +58,18 @@
      <rect>
       <x>30</x>
       <y>660</y>
-      <width>971</width>
+      <width>1141</width>
       <height>81</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTreeView" name="treeView">
+    <property name="geometry">
+     <rect>
+      <x>910</x>
+      <y>50</y>
+      <width>261</width>
+      <height>601</height>
      </rect>
     </property>
    </widget>
@@ -69,7 +79,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1051</width>
+     <width>1180</width>
      <height>20</height>
     </rect>
    </property>
